@@ -68,6 +68,9 @@ holds what is true right now. Created 13 Nov 2026.
   Mac coordinating session the merge commit.
 - pin-utils RUSTSEC-2026-0441 is ignored until 2027-02-08; fix together with
   Keeplight and Vaexil Mod Manager.
+- chrono RUSTSEC-2026-0543 is ignored in `deny.toml` until 2027-02-17 (owner
+  go 2026-11-17), cargo-deny only: Slint's i-slint-core needs it and no release
+  drops it. Remove it when Slint does; same entry in Keeplight and Vaexil Mod Manager.
 
 ## Context Compaction Checklist
 
