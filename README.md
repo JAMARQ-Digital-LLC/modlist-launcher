@@ -120,3 +120,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). To report something that could harm a us
 ## License
 
 GPL-3.0-only. See [LICENSE](LICENSE). The embedded Geist and Geist Mono fonts are under the SIL Open Font License 1.1 ([assets/fonts/OFL.txt](assets/fonts/OFL.txt)). Mod Organizer 2 is also GPL-3.0. This launcher only starts it as a separate program and does not include any of its code.
+
+<!-- docs-only CI skip proof, closed unmerged -->
