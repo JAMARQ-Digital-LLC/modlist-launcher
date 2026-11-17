@@ -25,7 +25,7 @@ cargo build --release -p modlist-launcher
 ./scripts/smoke-arrow-keys.ps1
 ```
 
-CI runs all of these on every pull request, plus `cargo deny check`. `cargo deny` bans HTTP and TLS crates and rejects yanked or vulnerable ones. Both CI checks must pass before a pull request can merge.
+CI runs all of these on every pull request, plus `cargo deny check`. `cargo deny` bans HTTP and TLS crates and rejects yanked or vulnerable ones. Both CI checks must pass before a pull request can merge. A pull request that changes only root Markdown, Markdown under `docs/` or `LICENSE` skips both checks, which then pass as skipped; a `.github/` change always runs them.
 
 - Keep each pull request to one change.
 - Add tests for behaviour that can be tested. Platform-neutral logic belongs in `crates/core`, where it is unit tested.

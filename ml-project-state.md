@@ -18,7 +18,9 @@ holds what is true right now. Created 13 Nov 2026.
   font imports live in `app.slint`. Agree any theme change with those sessions.
 - Data: `%LOCALAPPDATA%\Modlist Launcher` (`config.json`, `launcher.log`,
   `steam-backups\`). Install: `%LOCALAPPDATA%\Programs\Modlist Launcher`.
-- CI: `ci.yml` (tests, cargo-deny, three smoke scripts on the release build),
+- CI: `ci.yml` (tests, cargo-deny, three smoke scripts on the release build;
+  a `changes` job skips both required jobs on docs-only PRs: root `*.md`,
+  `docs/**/*.md`, `LICENSE*`, 2026-11-17),
   `advisory-sweep.yml`, `release.yml` (a `v*` tag builds a draft release),
   `publish-feed.yml` (publishing the draft copies the installer to
   `JAMARQ-Digital-LLC/jamarq-releases`, secret `JAMARQ_RELEASES_TOKEN`).
