@@ -43,6 +43,15 @@ holds what is true right now. Created 13 Nov 2026.
   cards' `focused-card` tracking may only be needed for arrow keys.
 - Stage 08 reads `modlist-launcher-latest/release.json` (url + sha256) from
   the shared feed: owner leaning yes on 13 Nov, default recorded on the plan.
+  The owner's words (23 Oct): no auto-update, but "An update is available"
+  with an easy click-to-download-and-install button.
+- Claude in the app (draft-only, per agentic-instructions "Claude In The
+  Apps", #416) is a future option if a language task appears; nothing planned.
+  Recorded on the plan page's Roadmap tab, "Set aside for now" (14 Nov, from
+  the App consolidation session); nothing pending (checked 18 Nov).
+- Long-run fold: Vaexil Mod Manager's E9 plans an `mo2` backend for existing
+  MO2 setups, so this launcher may be absorbed there; its hung-MO2 handling
+  (#21) is the model for that backend.
 
 ## Active Task State & Known Regressions
 
@@ -51,7 +60,11 @@ holds what is true right now. Created 13 Nov 2026.
 - After the 8 Nov account move all four Steam Play hooks were re-applied and
   point at `C:\Users\Jason\...\modlist-launcher.exe`; Steam Play worked 4 times
   through 12 Nov.
-- No releases or tags; release and feed workflows have never run.
+- No releases or tags; release and feed workflows have never run (checked
+  18 Nov).
+- The registry entry in agentic-instructions lists `ci.yml`,
+  `advisory-sweep.yml` and `release.yml` but not `publish-feed.yml` (still so
+  on 18 Nov); fix it with the next registry change for this repo.
 - Watch: one copy left open four days kept running after its window closed
   (Oct); not reproduced.
 
@@ -74,11 +87,44 @@ holds what is true right now. Created 13 Nov 2026.
 
 ## Next Up
 
-Order (2026-11-18, set when the section was added for the fleet main-build task; the owner may reorder): A.
+Order (2026-11-18; the owner may reorder): A, then B, C, D. B to D are the
+stages the owner ordered on 13 Nov (05, 06, 08), carded here; B waits on the
+owner's go.
 
 ### A. Windows builds for Atlas's Reinstall
 
 Add `main-build.yml`, the release's Windows build stamped `+main.<sha>` with no publishing, so Atlas can reinstall Modlist Launcher on JASON-PC from main. Fleet: main-build. Moves `release.yml` from the tag push to a dispatch the owner starts (owner, 2026-11-18); the app has no update check, so none needs the `+main` rule yet. Brief: `docs/feature-briefs/main-build.md`
+
+### B. Stage 05: accessibility beyond the automation tree
+
+Waits on the owner's go, and needs about 10 minutes of the owner listening to
+live Narrator. Check Narrator on the cards, Play and Open MO2, the notices,
+Settings and the dialogs; every flow keyboard-only, including Apply Steam Play,
+Restore and End MO2; Windows contrast themes; display scales 100-200%, mixed-DPI
+monitors and "Make text bigger"; and the known gap, a card scrolled out of view
+missing from the UIA tree (23 Oct). Fix findings in this stage, each with a test
+or smoke script, and record a checklist in `docs/`. No new dependencies;
+`theme.slint` changes are agreed with Keeplight and Vaexil Mod Manager. Lead:
+Slint's ScrollView already scrolls a focused control into view (VMM, 12 Nov).
+Medium, 2 to 3 PRs.
+
+### C. Stage 06: first GitHub Release
+
+Unsigned, not announced (owner, 13 Nov). After A, `release.yml` runs on the
+owner's dispatch rather than a `v*` tag push. CI builds the zip and installer
+into a draft; the owner publishes, and publishing copies the installer to
+`jamarq-releases`. First real run of both workflows, so the first try may need
+a fix. Decide whether it ships as 0.1.0. Small, after B.
+
+### D. Stage 08: "An update is available"
+
+A notice with a button that downloads the installer, checks its SHA-256 and
+runs it; no auto-update. Default (owner leaning yes, 13 Nov): read
+`modlist-launcher-latest/release.json` from the shared feed once a day through
+WinHTTP, with a Settings switch to turn it off. The app's first network
+access: record it in the decision log and `docs/safety-model.md`. Compare only
+the version before "+" so `+main` builds (A) are offered the next release; VMM's
+E8 self-updater (vaexil-mod-manager#35) is the model. Medium, after C.
 
 ## Context Compaction Checklist
 
