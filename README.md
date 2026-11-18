@@ -34,7 +34,7 @@ Modlist Launcher is an independent project. It is not affiliated with the Mod Or
 
 ## Install
 
-Download from [Releases](https://github.com/jmars319/modlist-launcher/releases):
+Download from [Releases](https://github.com/JAMARQ-Digital-LLC/modlist-launcher/releases):
 
 - `ModlistLauncher-<version>-setup.exe` is a per-user installer. It needs no administrator rights and installs to `%LOCALAPPDATA%\Programs\Modlist Launcher`.
 - `ModlistLauncher-<version>-portable.zip` holds a single exe. Unzip it anywhere and run it.
