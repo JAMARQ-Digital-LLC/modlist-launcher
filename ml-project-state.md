@@ -87,9 +87,9 @@ holds what is true right now. Created 13 Nov 2026.
 
 ## Next Up
 
-Order (2026-11-18; the owner may reorder): A, then B, C, D. B to D are the
-stages the owner ordered on 13 Nov (05, 06, 08), carded here; B waits on the
-owner's go.
+Order (owner, 2026-11-18: "go with current defaults"): A, then B, C, D. B
+to D are the stages the owner ordered on 13 Nov (05, 06, 08). B stays a card,
+not started, until the owner says go.
 
 ### A. Windows builds for Atlas's Reinstall
 
