@@ -55,6 +55,7 @@ holds what is true right now. Created 13 Nov 2026.
 
 ## Active Task State & Known Regressions
 
+- **2026-11-18: joined Tier A auto-merge** (owner). `.github/workflows/dependabot-auto-merge.yml` is the fleet template on `ubuntu-latest`, because the repository is public. Dependabot minor and patch PRs merge themselves through the jamarq-automerge App once the required checks pass; majors still wait for review.
 - **2026-11-18: moved from `jmars319` to `JAMARQ-Digital-LLC`** (owner's decision, so Claude sessions on the PCs need one org-owned fine-grained token). Repository id, settings, `main` protection (Lint, test, and build; Dependency policy) and the `JAMARQ_RELEASES_TOKEN` secret carried over, and old URLs redirect. Clones on the Mac, JASON-PC and JASON-PC-2 now point at the org. The `repository` field, installer URLs and doc links name the org. Releases and update feeds were never here (they are in `JAMARQ-Digital-LLC/jamarq-releases`).
 - Installed exe is the 25 Oct build of `99595b6` (#21); main at `b510def`
   (#26) differs only in dependencies, a test fix and workflows.
