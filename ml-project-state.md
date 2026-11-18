@@ -72,6 +72,14 @@ holds what is true right now. Created 13 Nov 2026.
   go 2026-11-17), cargo-deny only: Slint's i-slint-core needs it and no release
   drops it. Remove it when Slint does; same entry in Keeplight and Vaexil Mod Manager.
 
+## Next Up
+
+Order (2026-11-18, set when the section was added for the fleet main-build task; the owner may reorder): A.
+
+### A. Windows builds for Atlas's Reinstall
+
+Add `main-build.yml`, the release's Windows build stamped `+main.<sha>` with no publishing, so Atlas can reinstall Modlist Launcher on JASON-PC from main. Fleet: main-build. Moves `release.yml` from the tag push to a dispatch the owner starts (owner, 2026-11-18); the app has no update check, so none needs the `+main` rule yet. Brief: `docs/feature-briefs/main-build.md`
+
 ## Context Compaction Checklist
 
 - Keep the plan artifact line first; the URL does not change.
