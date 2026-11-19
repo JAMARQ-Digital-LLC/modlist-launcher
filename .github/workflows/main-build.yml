@@ -14,9 +14,6 @@ name: Main build
 
 on:
   workflow_dispatch:
-  # Temporary, for the branch's verification run only; removed before review.
-  push:
-    branches: [feat/windows-builds-for-atlas-s-reinstall]
 
 permissions:
   contents: read
@@ -32,7 +29,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Refuse a branch other than main
-        if: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/feat/windows-builds-for-atlas-s-reinstall' }}
+        if: ${{ github.ref != 'refs/heads/main' }}
         shell: bash
         run: |
           echo "::error::Main builds run on main only, not ${GITHUB_REF}."

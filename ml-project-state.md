@@ -21,9 +21,15 @@ holds what is true right now. Created 13 Nov 2026.
 - CI: `ci.yml` (tests, cargo-deny, three smoke scripts on the release build;
   a `changes` job skips both required jobs on docs-only PRs: root `*.md`,
   `docs/**/*.md`, `LICENSE*`, 2026-11-17),
-  `advisory-sweep.yml`, `release.yml` (a `v*` tag builds a draft release),
-  `publish-feed.yml` (publishing the draft copies the installer to
-  `JAMARQ-Digital-LLC/jamarq-releases`, secret `JAMARQ_RELEASES_TOKEN`).
+  `advisory-sweep.yml`, `main-build.yml` (dispatch on main only: version
+  stamped `<version>+main.<sha7>` by `scripts/stamp-version.ps1`, read back by
+  `scripts/check-installer-version.ps1`, artifact
+  `modlist-launcher-main-<full sha>` with the setup exe and `SHA256SUMS.txt`
+  for 7 days; publishes nothing), `release.yml` (dispatch on main only, when
+  the owner asks: refuses a tagged or released version, tags main's head
+  `v<version>`, makes a draft), `publish-feed.yml` (the owner publishing the
+  draft copies the installer to `JAMARQ-Digital-LLC/jamarq-releases`, secret
+  `JAMARQ_RELEASES_TOKEN`).
 - Verify: `cargo test --workspace --locked` (102 pass, 2 live tests ignored on
   13 Nov 2026), then `scripts/smoke-*.ps1` against a release build.
 
@@ -55,6 +61,21 @@ holds what is true right now. Created 13 Nov 2026.
 
 ## Active Task State & Known Regressions
 
+- **2026-11-18: main builds for Atlas's Reinstall** (Next Up A, this repo's
+  part of Atlas Z). `main-build.yml` added; `release.yml` moved from the `v*`
+  tag push to the owner's dispatch. The branch run (a temporary push trigger,
+  removed before review, because a dispatch needs the file on main), run
+  44449548154 at `439a976`, read `0.1.0+main.439a976` back from Setup, the
+  uninstall entry, the installed exe and the Settings line, with the install
+  in `%LOCALAPPDATA%\Programs\Modlist Launcher`. The setup exe's binary file
+  version is now the numeric part (`VersionInfoVersion`), its product version
+  and the uninstall entry's DisplayVersion the full stamp. Still to come
+  elsewhere: the row in the Atlas worker's app table (Atlas Z), which must
+  keep `%LOCALAPPDATA%\Programs\Modlist Launcher`. The first real Reinstall
+  is the owner's, from Atlas. The repository is public, so the artifact is
+  downloadable by any signed-in GitHub user (GPL source; Atlas checks the
+  digest).
+
 - **2026-11-18: joined Tier A auto-merge** (owner). `.github/workflows/dependabot-auto-merge.yml` is the fleet template on `ubuntu-latest`, because the repository is public. Dependabot minor and patch PRs merge themselves through the jamarq-automerge App once the required checks pass; majors still wait for review.
 - **2026-11-18: moved from `jmars319` to `JAMARQ-Digital-LLC`** (owner's decision, so Claude sessions on the PCs need one org-owned fine-grained token). Repository id, settings, `main` protection (Lint, test, and build; Dependency policy) and the `JAMARQ_RELEASES_TOKEN` secret carried over, and old URLs redirect. Clones on the Mac, JASON-PC and JASON-PC-2 now point at the org. The `repository` field, installer URLs and doc links name the org. Releases and update feeds were never here (they are in `JAMARQ-Digital-LLC/jamarq-releases`).
 - Installed exe is the 25 Oct build of `99595b6` (#21); main at `b510def`
@@ -63,7 +84,8 @@ holds what is true right now. Created 13 Nov 2026.
   point at `C:\Users\Jason\...\modlist-launcher.exe`; Steam Play worked 4 times
   through 12 Nov.
 - No releases or tags; release and feed workflows have never run (checked
-  18 Nov).
+  18 Nov). A release now needs the owner to start `release.yml` and then
+  publish its draft.
 - The registry entry in agentic-instructions lists `ci.yml`,
   `advisory-sweep.yml` and `release.yml` but not `publish-feed.yml` (still so
   on 18 Nov); fix it with the next registry change for this repo.
@@ -77,6 +99,14 @@ holds what is true right now. Created 13 Nov 2026.
   Settings, download only on click, and be recorded in the decision log and
   `docs/safety-model.md`.
 - No auto-update. New modlists are never added without the owner's OK.
+- The `+main` rule, for stage 08's notice (test-ready): compare only the
+  version before "+". An installed `X.Y.Z+main.<sha>` is not told about
+  `X.Y.Z` or older, and is told about `X.Y.(Z+1)`. Cases: installed
+  `0.1.0+main.abc1234` vs feed `0.1.0` -> no notice; vs `0.0.9` -> no
+  notice; vs `0.1.1` -> notice; installed `0.1.0` vs `0.1.0` -> no notice.
+- Official releases only when the owner asks (owner, 2026-11-18); main
+  builds are the normal way to update JASON-PC. Never install by hand from a
+  session.
 - Steam's `localconfig.vdf` is written only while Steam is closed, always
   after a backup.
 - `assets/icon.svg` and `scripts/generate-icon.ps1` change together; tell the
@@ -89,13 +119,9 @@ holds what is true right now. Created 13 Nov 2026.
 
 ## Next Up
 
-Order (owner, 2026-11-18: "go with current defaults"): A, then B, C, D. B
-to D are the stages the owner ordered on 13 Nov (05, 06, 08). B stays a card,
-not started, until the owner says go.
-
-### A. Windows builds for Atlas's Reinstall
-
-Add `main-build.yml`, the release's Windows build stamped `+main.<sha>` with no publishing, so Atlas can reinstall Modlist Launcher on JASON-PC from main. Fleet: main-build. Moves `release.yml` from the tag push to a dispatch the owner starts (owner, 2026-11-18); the app has no update check, so none needs the `+main` rule yet. Brief: `docs/feature-briefs/main-build.md`
+Order (owner, 2026-11-18: "go with current defaults"): B, C, D (A, the main
+build, landed 18 Nov). B to D are the stages the owner ordered on 13 Nov (05,
+06, 08). B stays a card, not started, until the owner says go.
 
 ### B. Stage 05: accessibility beyond the automation tree
 
@@ -112,8 +138,9 @@ Medium, 2 to 3 PRs.
 
 ### C. Stage 06: first GitHub Release
 
-Unsigned, not announced (owner, 13 Nov). After A, `release.yml` runs on the
-owner's dispatch rather than a `v*` tag push. CI builds the zip and installer
+Unsigned, not announced (owner, 13 Nov). `release.yml` runs on the owner's
+dispatch on main (since 18 Nov), tags main's head `v<version>` and makes the
+draft. CI builds the zip and installer
 into a draft; the owner publishes, and publishing copies the installer to
 `jamarq-releases`. First real run of both workflows, so the first try may need
 a fix. Decide whether it ships as 0.1.0. Small, after B.
@@ -125,7 +152,8 @@ runs it; no auto-update. Default (owner leaning yes, 13 Nov): read
 `modlist-launcher-latest/release.json` from the shared feed once a day through
 WinHTTP, with a Settings switch to turn it off. The app's first network
 access: record it in the decision log and `docs/safety-model.md`. Compare only
-the version before "+" so `+main` builds (A) are offered the next release; VMM's
+the version before "+" so `+main` builds are offered the next release (the
+test-ready cases are under Temporary Logic Rules); VMM's
 E8 self-updater (vaexil-mod-manager#35) is the model. Medium, after C.
 
 ## Context Compaction Checklist
