@@ -1,0 +1,83 @@
+name: Main build
+
+# The release's Windows build of main, for Atlas's "Reinstall on JASON-PC".
+# Started by hand (Atlas starts it from its window); there is no schedule and
+# no push trigger. The workspace version is stamped <version>+main.<sha7>
+# before scripts/package.ps1 runs, so the installer, the exe and the window
+# all say which commit they are. The setup exe and SHA256SUMS.txt are kept as
+# the artifact modlist-launcher-main-<full sha> for 7 days. Nothing is
+# published: no tag, no GitHub release and no feed. Official releases are
+# release.yml, only when the owner asks.
+#
+# This repository is public, so any signed-in GitHub user can download the
+# artifact. The source is public under GPL-3.0 too; Atlas checks the digest.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-build-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - name: Refuse a branch other than main
+        if: ${{ github.ref != 'refs/heads/main' }}
+        shell: bash
+        run: |
+          echo "::error::Main builds run on main only, not ${GITHUB_REF}."
+          exit 1
+
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup --no-progress -y
+          }
+
+      - name: Stamp the version
+        id: stamp
+        shell: pwsh
+        run: |
+          $version = ./scripts/stamp-version.ps1 -Build "main.$($env:GITHUB_SHA.Substring(0, 7))" | Select-Object -Last 1
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "Version: ``$version``" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Test
+        run: cargo test --workspace --locked
+
+      - name: Package
+        shell: pwsh
+        run: ./scripts/package.ps1
+
+      # Installs on this throwaway runner only, the way Atlas's worker does.
+      - name: Read the version back
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.stamp.outputs.version }}
+        run: ./scripts/check-installer-version.ps1 -Installer "dist/ModlistLauncher-$env:VERSION-setup.exe" -Expect $env:VERSION
+
+      - name: Upload the installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: modlist-launcher-main-${{ github.sha }}
+          path: |
+            dist/ModlistLauncher-${{ steps.stamp.outputs.version }}-setup.exe
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7

@@ -12,6 +12,9 @@ $dist = Join-Path $root 'dist'
 $staging = Join-Path $dist 'staging'
 $version = (cargo metadata --no-deps --format-version 1 | ConvertFrom-Json).packages |
     Where-Object name -eq 'modlist-launcher' | Select-Object -ExpandProperty version
+# A main build carries build metadata (0.1.0+main.abc1234, see
+# scripts/stamp-version.ps1); Windows' binary file version takes only numbers.
+$fileVersion = ($version -split '[+-]')[0]
 
 if (-not $SkipBuild) {
     cargo build --release --locked -p modlist-launcher
@@ -76,7 +79,7 @@ if (-not $SkipInstaller) {
         if (-not $iscc -and (Test-Path $candidate)) { $iscc = $candidate }
     }
     if ($iscc) {
-        & $iscc /Q "/DAppVersion=$version" "/DSourceDir=$staging" "/DOutputDir=$dist" (Join-Path $root 'packaging\installer.iss')
+        & $iscc /Q "/DAppVersion=$version" "/DFileVersion=$fileVersion" "/DSourceDir=$staging" "/DOutputDir=$dist" (Join-Path $root 'packaging\installer.iss')
         if ($LASTEXITCODE -ne 0) { throw 'Inno Setup failed' }
         $artifacts += Join-Path $dist "ModlistLauncher-$version-setup.exe"
     } else {
