@@ -1,14 +1,24 @@
 name: Release
 
-# Builds the portable zip and the per-user installer for a version tag and
-# attaches them, with checksums, to a draft GitHub release for review.
+# Official releases go out only when the owner asks: the owner starts this
+# workflow on main (Actions > Release > Run workflow). There is no schedule
+# and no tag trigger. It builds the portable zip and the per-user installer
+# for main's head at the workspace version, tags that commit v<version> and
+# attaches the files, with checksums, to a draft GitHub release. It refuses a
+# version that already has a tag or a release; bump the workspace version
+# first. Nothing reaches the update feed until the owner publishes the draft,
+# which starts publish-feed.yml. Builds for JASON-PC between releases come
+# from main-build.yml.
 
 on:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   package:
@@ -16,11 +26,36 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 40
     steps:
+      - name: Refuse a branch other than main
+        if: ${{ github.ref != 'refs/heads/main' }}
+        shell: bash
+        run: |
+          echo "::error::Releases are made from main only, not ${GITHUB_REF}."
+          exit 1
+
       - name: Check out repository
         uses: actions/checkout@v7
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Read the version and refuse one already released
+        id: version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (cargo metadata --no-deps --format-version 1 --locked | ConvertFrom-Json).packages |
+              Where-Object name -eq 'modlist-launcher' | Select-Object -ExpandProperty version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "workspace version $version is not MAJOR.MINOR.PATCH" }
+          $tag = "v$version"
+          $existing = git ls-remote --tags origin "refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0) { throw 'could not list the tags on origin' }
+          if ($existing) { throw "$tag is already tagged; bump the workspace version first" }
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) { throw "a release named $tag already exists" }
+          $global:LASTEXITCODE = 0
+          "tag=$tag" >> $env:GITHUB_OUTPUT
 
       - name: Install Inno Setup
         shell: pwsh
@@ -36,9 +71,19 @@ jobs:
         shell: pwsh
         run: ./scripts/package.ps1
 
+      - name: Tag main's head
+        shell: pwsh
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git tag $env:TAG $env:GITHUB_SHA
+          git push origin "refs/tags/$env:TAG"
+          if ($LASTEXITCODE -ne 0) { throw "could not push $env:TAG" }
+
       - name: Create draft release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          gh release create "$env:GITHUB_REF_NAME" dist/*.zip dist/*.exe dist/SHA256SUMS.txt --draft --title "Modlist Launcher $env:GITHUB_REF_NAME" --generate-notes
+          gh release create $env:TAG dist/*.zip dist/*.exe dist/SHA256SUMS.txt --verify-tag --draft --title "Modlist Launcher $env:TAG" --generate-notes

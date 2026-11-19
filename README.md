@@ -101,7 +101,10 @@ Packaging (needs Inno Setup 6 for the installer):
 ./scripts/package.ps1
 ```
 
-This builds in `dist/staging` and writes the zip, installer and `SHA256SUMS.txt` to `dist/`. It also verifies the zip contents. Tagging `v*` runs the same script in CI and creates a draft GitHub release.
+This builds in `dist/staging` and writes the zip, installer and `SHA256SUMS.txt` to `dist/`. It also verifies the zip contents. CI runs the same script in two workflows, both started by hand:
+
+- **Release** (`release.yml`) makes an official release only when the owner asks: it tags main's head `v<version>` and creates a draft GitHub release. Publishing the draft updates the download feed.
+- **Main build** (`main-build.yml`) builds main with the version stamped `<version>+main.<commit>` and keeps the installer as a workflow artifact for 7 days, for reinstalling from main between releases. It publishes nothing.
 
 ### Layout
 

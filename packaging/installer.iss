@@ -1,8 +1,14 @@
 ; Per-user installer for Modlist Launcher. Needs no administrator rights.
-; Built by scripts/package.ps1, which passes AppVersion and SourceDir.
+; Built by scripts/package.ps1, which passes AppVersion, FileVersion and
+; SourceDir. AppVersion may carry build metadata (0.1.0+main.abc1234) and is
+; what Add/Remove Programs shows as the version; FileVersion is its numeric
+; part, for Setup's binary file version.
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
+#endif
+#ifndef FileVersion
+  #define FileVersion "0.0.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\dist\staging"
@@ -15,6 +21,8 @@
 AppId={{6B1E2B53-7C1E-4E0F-9A35-2C7B8F0D4A61}
 AppName=Modlist Launcher
 AppVersion={#AppVersion}
+VersionInfoVersion={#FileVersion}
+VersionInfoProductTextVersion={#AppVersion}
 AppPublisher=Modlist Launcher contributors
 AppPublisherURL=https://github.com/JAMARQ-Digital-LLC/modlist-launcher
 AppSupportURL=https://github.com/JAMARQ-Digital-LLC/modlist-launcher/issues
