@@ -23,6 +23,8 @@ $A = [System.Windows.Automation.AutomationElement]
 
 $failed = $false
 function Check($label, $got) {
+    # Setup's version strings come back padded with spaces or NULs.
+    $got = "$got".Trim([char[]]@([char]0, ' '))
     $ok = $got -eq $Expect
     if (-not $ok) { $script:failed = $true }
     '{0,-34} {1,-34} {2}' -f $label, $got, $(if ($ok) { 'ok' } else { "FAIL (expected $Expect)" })
