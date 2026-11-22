@@ -44,3 +44,4 @@ Slint's `cupertino` style cannot carry this on its own. Its `Palette` is read-on
   - `scripts/smoke-arrow-keys.ps1` and `scripts/smoke-minimize-restore.ps1` pass.
 - `Theme.window-background-alt` must stay one step off `window-background`, because the repaint-after-restore workaround depends on it.
 - A shared theme crate is not worth it yet. Slint has no package mechanism for `.slint` files short of a Rust crate with an include path. Copying one file is simpler until a third app needs it.
+- *Amended 2026-11-22:* there is no shared crate, even now that three apps use the theme. agentic-instructions ADR-0038 keeps shared infrastructure as byte-identical copies with hash records, so `theme.slint` moves into `jamarq-app-kit` as a copied module when that kit is built. Until then this repository holds the reference copy, and fixes land here first.
