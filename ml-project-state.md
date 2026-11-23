@@ -61,6 +61,7 @@ holds what is true right now. Created 13 Nov 2026.
 
 ## Active Task State & Known Regressions
 
+- **2026-11-22: `url` 2.5.9 for RUSTSEC-2026-0592** (agentic-instructions `[url-2.5.9-slint]`, branch `fix/url-2.5.9`). `cargo update -p url --precise 2.5.9` moved `url` 2.5.8 to 2.5.9 and `form_urlencoded` 1.2.2 to 1.2.3 in `Cargo.lock`: no manifest change and no advisory exception. `cargo deny check` passes without the ID.
 - **2026-11-18: main builds for Atlas's Reinstall** (Next Up A, this repo's
   part of Atlas Z). `main-build.yml` added; `release.yml` moved from the `v*`
   tag push to the owner's dispatch. The branch run (a temporary push trigger,
