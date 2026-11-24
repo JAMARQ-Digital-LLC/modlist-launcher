@@ -4,6 +4,8 @@ Plan artifact: https://claude.ai/artifact/2qaZ63YM974LMKSFwgbQZD ("The Modlist
 Launcher Plan", the owner-facing page in five tabs; update it in place, never
 publish a second one).
 
+History: ml-history.md
+
 Working state across sessions. Durable detail lives in `README.md` and `docs/`
 (`docs/safety-model.md`, `docs/steam-play-button.md`, `docs/adr/`); this file
 holds what is true right now. Created 13 Nov 2026.
@@ -35,6 +37,10 @@ holds what is true right now. Created 13 Nov 2026.
 
 ## Current Structural Milestones / Active Feature Goals
 
+- **History moved off the plan page (2026-11-23).** Finished work, the dated
+  ledger and completed setup now live in `ml-history.md`; the plan page's Done
+  tab keeps the last two weeks and links to it (agentic-instructions
+  `docs/project-plan-artifact.md`, "Where history lives").
 - Order set by the owner on 13 Nov 2026: stage 05 accessibility, then 06 a
   first GitHub Release (`v0.1.0`, unsigned, not announced), then 08 the
   "An update is available" notice.
