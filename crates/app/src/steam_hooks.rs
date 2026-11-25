@@ -134,7 +134,10 @@ pub fn backup(data: &DataDir, account_id: u32, text: &str) -> Result<PathBuf, St
 }
 
 /// Replaces Steam's settings file through a temporary file and a rename.
+/// Under scratch only a fake Steam inside the scratch folders is written.
 pub fn write(path: &Path, text: &str) -> std::io::Result<()> {
+    crate::platform::check_scratch_path("write", path)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e))?;
     let tmp = path.with_extension("vdf.modlist-launcher-tmp");
     std::fs::write(&tmp, text)?;
     std::fs::rename(&tmp, path).inspect_err(|_| {

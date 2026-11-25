@@ -37,8 +37,21 @@ $expect = @(
 )
 $vk = @{ RIGHT = 0x27; LEFT = 0x25; UP = 0x26; DOWN = 0x28; HOME = 0x24; END = 0x23 }
 
+$installed = Join-Path $env:LOCALAPPDATA 'Programs\Modlist Launcher'
+if ((Resolve-Path $Exe).Path.StartsWith($installed, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "Refusing to smoke-test the installed launcher ($Exe); build one with cargo build --release."
+}
 $psi = [System.Diagnostics.ProcessStartInfo]::new((Resolve-Path $Exe))
-$psi.Environment['MODLIST_LAUNCHER_DATA'] = $data
+# Scratch mode: the launcher refuses its real data folders, the real Steam
+# and starting anything outside these temp folders.
+$steam = Join-Path $work 'steam'
+New-Item -ItemType Directory -Force (Join-Path $steam 'steamapps') | Out-Null
+$psi.Environment['MODLIST_LAUNCHER_SCRATCH'] = '1'
+$psi.Environment['MODLIST_LAUNCHER_DATA_DIR'] = $data
+$psi.Environment.Remove('MODLIST_LAUNCHER_DATA') | Out-Null
+$psi.Environment['MODLIST_LAUNCHER_STEAM'] = $steam
+$psi.Environment['MODLIST_LAUNCHER_NETWORK'] = 'offline'
+$psi.Environment['MODLIST_LAUNCHER_SECRETS'] = 'memory'
 $p = [System.Diagnostics.Process]::Start($psi)
 $failed = $false
 try {

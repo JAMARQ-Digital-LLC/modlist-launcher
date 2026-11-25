@@ -27,7 +27,7 @@ Enforcement:
 
 | Where | When |
 | --- | --- |
-| `%LOCALAPPDATA%\Modlist Launcher\` | Configuration, custom artwork copies, Steam backups, log. |
+| `%LOCALAPPDATA%\Modlist Launcher\` (a dev build: `Modlist Launcher Dev\`) | Configuration, custom artwork copies, Steam backups, log. Its access list grants only your Windows account, set at creation and at each launch. |
 | `Desktop\*.lnk`, `Start Menu\Programs\*.lnk` | Only when you choose Add to Desktop or Add to Start Menu. An existing file is only replaced after you confirm. |
 | One account's Steam `userdata\<id>\config\localconfig.vdf` | Only when you press Apply or Restore in the Steam Play Button sheet, press Restore under Settings > Steam games still pointing here, remove a modlist connected to Steam's Play button, or uninstall the launcher (`--restore-steam`). Only values whose program is `modlist-launcher.exe --steam` are ever restored this way. |
 
@@ -54,6 +54,11 @@ When it changes Steam's `localconfig.vdf`, the launcher:
   - you press **End MO2** on its card;
   - you confirm.
   Just before ending it, the launcher checks again that the process ID still belongs to that installation's `ModOrganizer.exe` and still has no window. Otherwise it leaves the process alone. It needs no administrator rights, and each end is logged.
+
+## Dev builds and scratch mode
+
+- Only the build `scripts/package.ps1` makes in CI is the release app. Every other build is the dev app, with its own data folder and no Steam unless `MODLIST_LAUNCHER_STEAM=live` is set.
+- With `MODLIST_LAUNCHER_SCRATCH=1` the launcher refuses the release and dev data folders, `%APPDATA%` and the real Steam folder, and refuses to start a program, write a shortcut or write Steam's settings outside the scratch data folder and temp (`crates/core/src/scratch.rs`). Tests always run this way. The variables are in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Not done, by design
 

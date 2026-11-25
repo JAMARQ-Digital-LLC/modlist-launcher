@@ -12,5 +12,6 @@ pub mod launch;
 pub mod mo2;
 pub mod paths;
 pub mod process;
+pub mod scratch;
 pub mod steam;
 pub mod validate;

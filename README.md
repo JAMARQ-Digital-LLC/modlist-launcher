@@ -65,7 +65,7 @@ modlist-launcher --steam <id> -- <cmd>   Used by Steam launch options (%command%
 
 ## Where things are stored
 
-The launcher's own files live in `%LOCALAPPDATA%\Modlist Launcher`. Nothing here is ever written inside an MO2 installation.
+The launcher's own files live in `%LOCALAPPDATA%\Modlist Launcher`, readable only by your Windows account. Nothing here is ever written inside an MO2 installation.
 
 | File | What it is |
 | --- | --- |
@@ -85,7 +85,7 @@ cargo test --workspace
 cargo run -p modlist-launcher
 ```
 
-Set `MODLIST_LAUNCHER_DATA` to a scratch folder to keep development runs away from your real configuration.
+A build you make yourself is the dev app: it keeps its files in `%LOCALAPPDATA%\Modlist Launcher Dev` and does not see Steam, so it never touches your real configuration or Steam's settings. Only the release workflows' builds use `%LOCALAPPDATA%\Modlist Launcher` and the real Steam. See [CONTRIBUTING.md](CONTRIBUTING.md) for scratch mode.
 
 To check that the window repaints after minimize/restore and maximize/restore, run this after a release build:
 

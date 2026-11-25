@@ -76,7 +76,10 @@ pub fn shortcut_path(place: ShortcutPlace, name: &str) -> Option<PathBuf> {
 }
 
 /// Creates a `.lnk`. Refuses to replace an existing file unless `replace`.
+/// Under scratch it writes only inside the scratch folders, never the real
+/// Desktop or Start menu.
 pub fn create_shortcut(path: &Path, s: &Shortcut<'_>, replace: bool) -> Result<(), ShortcutError> {
+    super::check_scratch_path("write", path).map_err(ShortcutError::Failed)?;
     if path.exists() && !replace {
         return Err(ShortcutError::Exists(path.to_path_buf()));
     }

@@ -21,7 +21,9 @@ pub struct AppState {
 
 impl AppState {
     pub fn load() -> (Self, Vec<String>) {
-        let store = ConfigStore::new(DataDir::new(platform::data_dir()));
+        let dir = platform::data_dir();
+        let acl = platform::acl::restrict_to_current_user(&dir);
+        let store = ConfigStore::new(DataDir::new(dir));
         let loaded = store.load();
         let mut state = Self {
             store,
@@ -31,6 +33,14 @@ impl AppState {
             inspections: HashMap::new(),
         };
         state.inspect_all();
+        if let Err(e) = acl {
+            state.log(&format!("data folder: {e}"));
+        }
+        if let Ok(s) = platform::settings()
+            && (s.dev || s.scratch)
+        {
+            state.log(&format!("dev build: {}, scratch: {}, Steam: {:?}", s.dev, s.scratch, s.steam));
+        }
         for w in &loaded.warnings {
             state.log(&format!("config: {w}"));
         }

@@ -14,7 +14,23 @@ Bug reports and pull requests are welcome. Modlist Launcher is small on purpose:
 
 ## Working on it
 
-You need the Rust toolchain (stable, MSVC) and Visual Studio Build Tools. Set `MODLIST_LAUNCHER_DATA` to a scratch folder so development runs never touch your real configuration.
+You need the Rust toolchain (stable, MSVC) and Visual Studio Build Tools.
+
+### Dev builds and scratch mode
+
+Any build except the one `scripts/package.ps1` makes in CI is the **dev app** (a debug build, `cargo build --release`, a worktree build). It keeps its files in `%LOCALAPPDATA%\Modlist Launcher Dev`, never `%LOCALAPPDATA%\Modlist Launcher`, and does not read the real Steam unless `MODLIST_LAUNCHER_STEAM=live` asks for it by name. The launcher has no single-instance lock, so a dev copy and the installed one can run side by side.
+
+For tests, smoke scripts and anything an agent runs, use **scratch mode**:
+
+| Variable | Value |
+| --- | --- |
+| `MODLIST_LAUNCHER_SCRATCH` | `1` |
+| `MODLIST_LAUNCHER_DATA_DIR` | A throwaway folder (required). The old name `MODLIST_LAUNCHER_DATA` still works. |
+| `MODLIST_LAUNCHER_STEAM` | A fake Steam folder, or unset for no Steam. `live` is refused. |
+| `MODLIST_LAUNCHER_NETWORK` | `offline`. The launcher makes no network connections; `live` is refused. |
+| `MODLIST_LAUNCHER_SECRETS` | `memory`. The launcher stores no secrets; `keychain` is refused. |
+
+With `MODLIST_LAUNCHER_SCRATCH=1` the launcher refuses to start if the data folder is inside the release or dev data folder, `%APPDATA%` or the real Steam folder (from `HKCU\Software\Valve\Steam\SteamPath`), and it refuses to start a program, write a shortcut or write Steam's settings anywhere outside the scratch data folder and the temp folder. So a scratch run can never start a real MO2 or game, or change the real Steam `localconfig.vdf`. Tests always run in scratch (`cfg(test)`), each test process with its own data folder under temp, and the smoke scripts set all five variables. The data folder's access list grants only your account, set when it is created and again at each launch.
 
 ```powershell
 cargo fmt --all

@@ -31,8 +31,21 @@ Set-Content -Path (Join-Path $root 'ModOrganizer.ini') -Value "[General]`ngameNa
 @{ schemaVersion = 1; installations = @(@{ id = [guid]::NewGuid().ToString(); name = 'Click List'; exePath = (Join-Path $root 'ModOrganizer.exe'); workingDirectory = $root }) } |
     ConvertTo-Json -Depth 4 | Set-Content (Join-Path $data 'config.json')
 
+$installed = Join-Path $env:LOCALAPPDATA 'Programs\Modlist Launcher'
+if ((Resolve-Path $Exe).Path.StartsWith($installed, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "Refusing to smoke-test the installed launcher ($Exe); build one with cargo build --release."
+}
 $psi = [System.Diagnostics.ProcessStartInfo]::new((Resolve-Path $Exe))
-$psi.Environment['MODLIST_LAUNCHER_DATA'] = $data
+# Scratch mode: the launcher refuses its real data folders, the real Steam
+# and starting anything outside these temp folders.
+$steam = Join-Path $work 'steam'
+New-Item -ItemType Directory -Force (Join-Path $steam 'steamapps') | Out-Null
+$psi.Environment['MODLIST_LAUNCHER_SCRATCH'] = '1'
+$psi.Environment['MODLIST_LAUNCHER_DATA_DIR'] = $data
+$psi.Environment.Remove('MODLIST_LAUNCHER_DATA') | Out-Null
+$psi.Environment['MODLIST_LAUNCHER_STEAM'] = $steam
+$psi.Environment['MODLIST_LAUNCHER_NETWORK'] = 'offline'
+$psi.Environment['MODLIST_LAUNCHER_SECRETS'] = 'memory'
 $p = [System.Diagnostics.Process]::Start($psi)
 $failed = $false
 try {

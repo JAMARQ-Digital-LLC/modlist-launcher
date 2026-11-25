@@ -3,7 +3,11 @@
 #   ModlistLauncher-<version>-setup.exe   (when Inno Setup 6 is installed)
 #   SHA256SUMS.txt
 # Packaging happens in dist/staging; the repository root is never zipped.
-param([switch] $SkipBuild, [switch] $SkipInstaller)
+#
+# Only a CI build (or -ReleaseIdentity) is the release app, with the data in
+# %LOCALAPPDATA%\Modlist Launcher and the real Steam. Any other build is the
+# dev app: %LOCALAPPDATA%\Modlist Launcher Dev and no Steam unless asked for.
+param([switch] $SkipBuild, [switch] $SkipInstaller, [switch] $ReleaseIdentity)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
@@ -17,8 +21,15 @@ $version = (cargo metadata --no-deps --format-version 1 | ConvertFrom-Json).pack
 $fileVersion = ($version -split '[+-]')[0]
 
 if (-not $SkipBuild) {
-    cargo build --release --locked -p modlist-launcher
-    if ($LASTEXITCODE -ne 0) { throw 'cargo build failed' }
+    $release = $ReleaseIdentity -or $env:GITHUB_ACTIONS -eq 'true'
+    $env:MODLIST_LAUNCHER_RELEASE_BUILD = if ($release) { '1' } else { $null }
+    try {
+        cargo build --release --locked -p modlist-launcher
+        if ($LASTEXITCODE -ne 0) { throw 'cargo build failed' }
+    } finally {
+        Remove-Item Env:MODLIST_LAUNCHER_RELEASE_BUILD -ErrorAction SilentlyContinue
+    }
+    if (-not $release) { Write-Warning 'Not a CI build: this package is the dev app (Modlist Launcher Dev data folder).' }
 }
 
 if (Test-Path $staging) { Remove-Item -Recurse -Force $staging }
