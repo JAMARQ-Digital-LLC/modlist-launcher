@@ -21,6 +21,11 @@ fn main() {
             std::process::exit(2);
         }
     };
+    // Scratch mode refuses to start at all rather than fall back to real data.
+    if let Err(e) = platform::settings() {
+        headless::show_message("Modlist Launcher", &format!("Modlist Launcher did not start.\n\n{e}"));
+        std::process::exit(2);
+    }
     let code = match command {
         Command::Gui => gui::run(),
         Command::Launch { target, mode } => headless::launch(&target, mode),

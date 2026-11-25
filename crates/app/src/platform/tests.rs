@@ -156,6 +156,7 @@ fn helper_fake_game() {
 
 fn spawn_fake_game(dir: &std::path::Path, mode: &str) -> (std::path::PathBuf, std::process::Child) {
     let exe = dir.join(format!("FakeGame-{mode}.exe"));
+    super::check_scratch_path("start", &exe).unwrap();
     std::fs::copy(std::env::current_exe().unwrap(), &exe).unwrap();
     let child = std::process::Command::new(&exe)
         .args(["--exact", "platform::tests::helper_fake_game", "--ignored"])
@@ -220,4 +221,66 @@ fn shortcut_round_trip() {
     assert_eq!(std::fs::canonicalize(&got_target).unwrap(), std::fs::canonicalize(&target).unwrap());
     assert_eq!(modlist_core::cli::shortcut_target(&got_target, &args), Some("5f0c".into()));
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Scratch mode. Each probe names a path that does not exist, so even a
+// broken guard could not start, write or touch anything real.
+
+#[test]
+fn tests_run_in_scratch_with_their_own_data_folder() {
+    let s = super::settings().as_ref().expect("test settings resolve");
+    assert!(s.scratch);
+    assert!(modlist_core::scratch::is_within(&s.data_dir, &std::env::temp_dir()), "{}", s.data_dir.display());
+    if std::env::var_os(modlist_core::scratch::STEAM).is_none() {
+        assert!(super::steam::locate().is_none(), "scratch must not find the real Steam");
+    }
+}
+
+#[test]
+fn scratch_refuses_to_start_a_program_outside_its_folders() {
+    let spec = modlist_core::launch::LaunchSpec {
+        program: PathBuf::from(r"C:\Windows\System32\modlist-scratch-probe.exe"),
+        args: Vec::new(),
+        working_directory: PathBuf::from(r"C:\Windows"),
+    };
+    let err = plaunch::spawn(&spec).unwrap_err();
+    assert_eq!(err.kind(), std::io::ErrorKind::PermissionDenied, "{err}");
+}
+
+#[test]
+fn scratch_refuses_shortcuts_and_steam_writes_outside_its_folders() {
+    let outside = PathBuf::from(format!(r"C:\modlist-scratch-probe-{}", std::process::id()));
+    let s = super::shell::Shortcut {
+        target: &outside.join("modlist-launcher.exe"),
+        arguments: "",
+        working_directory: &outside,
+        icon: None,
+        description: "probe",
+    };
+    let err = super::shell::create_shortcut(&outside.join("List.lnk"), &s, false).unwrap_err();
+    assert!(err.to_string().contains(modlist_core::scratch::SCRATCH), "{err}");
+    let err = crate::steam_hooks::write(&outside.join("localconfig.vdf"), "x").unwrap_err();
+    assert_eq!(err.kind(), std::io::ErrorKind::PermissionDenied, "{err}");
+    assert!(!outside.exists());
+}
+
+#[test]
+fn data_folder_acl_grants_only_the_current_user() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path().join("data");
+    std::fs::create_dir_all(&dir).unwrap();
+    // A plain temp folder inherits its parent's entries.
+    assert!(!super::acl::only_current_user(&dir).unwrap());
+    super::acl::restrict_to_current_user(&dir).unwrap();
+    assert!(super::acl::only_current_user(&dir).unwrap());
+    // Applied again on an existing folder, as at every launch, and on a
+    // missing one, which it creates.
+    std::fs::write(dir.join("config.json"), b"{}").unwrap();
+    super::acl::restrict_to_current_user(&dir).unwrap();
+    assert!(super::acl::only_current_user(&dir).unwrap());
+    let fresh = tmp.path().join("new").join("data");
+    super::acl::restrict_to_current_user(&fresh).unwrap();
+    assert!(super::acl::only_current_user(&fresh).unwrap());
+    // The user still reads and writes inside it.
+    assert_eq!(std::fs::read(dir.join("config.json")).unwrap(), b"{}");
 }

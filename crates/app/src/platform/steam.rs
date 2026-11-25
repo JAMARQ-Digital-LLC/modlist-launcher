@@ -1,11 +1,25 @@
 use std::path::PathBuf;
 
+use modlist_core::scratch::SteamSource;
 use modlist_core::steam::SteamRoot;
 use windows::Win32::System::Registry::{HKEY_CURRENT_USER, RRF_RT_REG_SZ, RegGetValueW};
 use windows::core::w;
 
-/// Steam's install folder from `HKCU\Software\Valve\Steam\SteamPath`.
+/// The Steam folder this run uses: the real one from the registry only in a
+/// release build (or with `MODLIST_LAUNCHER_STEAM=live`), a named folder, or
+/// none (see `modlist_core::scratch`).
 pub fn locate() -> Option<SteamRoot> {
+    let path = match &super::settings().as_ref().ok()?.steam {
+        SteamSource::Registry => registry_path()?,
+        SteamSource::Folder(p) => p.clone(),
+        SteamSource::Off => return None,
+    };
+    path.is_dir().then(|| SteamRoot::new(path))
+}
+
+/// `HKCU\Software\Valve\Steam\SteamPath`. Read-only; also used to refuse
+/// the real folder in dev and scratch runs.
+pub fn registry_path() -> Option<PathBuf> {
     let mut buf = vec![0u16; 1024];
     let mut size = (buf.len() * 2) as u32;
     // SAFETY: buffer size in bytes is passed and updated by the call.
@@ -23,8 +37,7 @@ pub fn locate() -> Option<SteamRoot> {
     if status.is_err() {
         return None;
     }
-    let path = PathBuf::from(super::from_wide(&buf).replace('/', "\\"));
-    path.is_dir().then(|| SteamRoot::new(path))
+    Some(PathBuf::from(super::from_wide(&buf).replace('/', "\\")))
 }
 
 pub fn is_running() -> bool {
