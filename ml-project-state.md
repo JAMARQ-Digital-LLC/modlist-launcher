@@ -33,8 +33,9 @@ holds what is true right now. Created 13 Nov 2026.
   for 7 days; publishes nothing), `release.yml` (dispatch on main only, when
   the owner asks: refuses a tagged or released version, tags main's head
   `v<version>`, makes a draft), `publish-feed.yml` (the owner publishing the
-  draft copies the installer to `JAMARQ-Digital-LLC/jamarq-releases`, secret
-  `JAMARQ_RELEASES_TOKEN`).
+  draft copies the installer to `JAMARQ-Digital-LLC/jamarq-releases` with a
+  one-hour token from the `jamarq-releases-publisher` App, org secrets
+  `JAMARQ_RELEASES_APP_ID` and `JAMARQ_RELEASES_APP_PRIVATE_KEY`, since 2026-11-26).
 - Verify: `cargo test --workspace --locked` (114 pass, 2 ignored helpers, on
   25 Nov 2026; always scratch), then `scripts/smoke-*.ps1` against a release
   build. Over SSH the two window tests cannot pass (no desktop) and leave a
