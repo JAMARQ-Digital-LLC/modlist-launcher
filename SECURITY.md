@@ -4,7 +4,7 @@ Modlist Launcher runs with your normal user rights. It never asks for admin righ
 
 - its own data folder;
 - shortcuts you ask for;
-- launch-options values in one Steam account's settings, when you press Apply or Restore, remove a modlist connected to Steam's Play button, or uninstall the launcher, with Steam closed and after a backup.
+- launch-options values in Steam's settings, when you press Apply or Restore, remove a modlist connected to Steam's Play button, or uninstall the launcher, with Steam closed and after a backup.
 
 ## Reporting a problem
 
